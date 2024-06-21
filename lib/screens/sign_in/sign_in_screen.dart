@@ -54,11 +54,13 @@ class _SignInScreenState extends State<SignInScreen> {
       print('Body: ${response.body}');
 
       if (response.statusCode == 200) {
-        // Parse the response body to get the access token
+        // Parse the response body to get the access token and user ID
         final responseBody = jsonDecode(response.body);
         String accessToken = responseBody['access_token'];
+        int userId = responseBody['user_id'];
         SharedPreferences prefs = await SharedPreferences.getInstance();
         await prefs.setString('access_token', accessToken);
+        await prefs.setInt('user_id', userId);
 
         // Check if OTP verification is already completed
         bool isOtpVerified = prefs.getBool('is_otp_verified') ?? false;

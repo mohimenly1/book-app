@@ -3,7 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-
+import 'dart:convert';
 import '../hotel_booking/model/playground_list_data.dart'; // Updated import
 import 'playground_app_theme.dart';
 import 'playground_details_dialog.dart'; // Import the dialog widget
@@ -87,12 +87,20 @@ class PlaygroundListView extends StatelessWidget {
                           children: <Widget>[
                             AspectRatio(
                               aspectRatio: 2,
-                              child: Image.network(
-                                playground!.images.isNotEmpty
-                                    ? playground!.images[0]
-                                    : '',
-                                fit: BoxFit.cover,
-                              ),
+                              child: playground!.images.isNotEmpty
+                                  ? (playground!.images[0]
+                                          .startsWith('data:image')
+                                      ? Image.memory(
+                                          base64Decode(playground!.images[0]
+                                              .split(',')
+                                              .last),
+                                          fit: BoxFit.cover,
+                                        )
+                                      : Image.network(
+                                          playground!.images[0],
+                                          fit: BoxFit.cover,
+                                        ))
+                                  : Container(color: Colors.grey),
                             ),
                             Container(
                               color: HotelAppTheme.buildLightTheme()

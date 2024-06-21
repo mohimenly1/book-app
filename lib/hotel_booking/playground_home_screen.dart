@@ -1,3 +1,4 @@
+import '../hotel_booking/reservation_details.dart';
 import 'package:app/screens/sign_in/sign_in_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -190,6 +191,21 @@ class _PlaygroundHomeScreenState extends State<PlaygroundHomeScreen>
                   ),
                   onTap: () {
                     Navigator.pop(context);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.book_online),
+                  title: const Text(
+                    'حجوزاتي',
+                    style: TextStyle(fontFamily: 'HacenSamra'),
+                  ),
+                  onTap: () {
+                    Navigator.push<dynamic>(
+                      context,
+                      MaterialPageRoute<dynamic>(
+                          builder: (BuildContext context) =>
+                              const ReservationDetailsScreen()),
+                    );
                   },
                 ),
                 ListTile(

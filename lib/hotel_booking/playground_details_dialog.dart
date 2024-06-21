@@ -1,5 +1,4 @@
-// File: lib/screens/playground_details_dialog.dart
-
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 import '../hotel_booking/model/playground_list_data.dart';
@@ -22,13 +21,12 @@ class PlaygroundDetailsDialog extends StatelessWidget {
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               AspectRatio(
-                aspectRatio: 2,
-                child: Image.network(
-                  playground.images.isNotEmpty ? playground.images[0] : '',
-                  fit: BoxFit.cover,
-                ),
+                aspectRatio: 16 / 9, // Adjust the aspect ratio as needed
+                child: _buildMainImage(
+                    playground.images.isNotEmpty ? playground.images[0] : ''),
               ),
               SizedBox(height: 16.0),
               Text(
@@ -147,6 +145,23 @@ class PlaygroundDetailsDialog extends StatelessWidget {
     );
   }
 
+  Widget _buildMainImage(String base64Image) {
+    if (base64Image.isNotEmpty && base64Image.startsWith('data:image')) {
+      // Decode base64 image
+      final bytes = base64.decode(base64Image.split(',').last);
+      return Image.memory(
+        bytes,
+        fit: BoxFit.cover,
+      );
+    } else {
+      // Placeholder or default image
+      return Image.asset(
+        'assets/images/placeholder.jpg',
+        fit: BoxFit.cover,
+      );
+    }
+  }
+
   Widget _buildImageGallery(List<String> galleryImages) {
     return Container(
       height: 100,
@@ -158,16 +173,32 @@ class PlaygroundDetailsDialog extends StatelessWidget {
             padding: const EdgeInsets.all(4.0),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(8.0),
-              child: Image.network(
-                galleryImages[index],
-                fit: BoxFit.cover,
-                width: 100,
-                height: 100,
-              ),
+              child: _buildGalleryImage(galleryImages[index]),
             ),
           );
         },
       ),
     );
+  }
+
+  Widget _buildGalleryImage(String base64Image) {
+    if (base64Image.isNotEmpty && base64Image.startsWith('data:image')) {
+      // Decode base64 image
+      final bytes = base64.decode(base64Image.split(',').last);
+      return Image.memory(
+        bytes,
+        fit: BoxFit.cover,
+        width: 100,
+        height: 100,
+      );
+    } else {
+      // Placeholder or default image
+      return Image.asset(
+        'assets/images/placeholder.jpg',
+        fit: BoxFit.cover,
+        width: 100,
+        height: 100,
+      );
+    }
   }
 }

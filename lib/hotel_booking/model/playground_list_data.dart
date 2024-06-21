@@ -29,7 +29,7 @@ class Playground {
       description: json['description'],
       pricePerHalfHour: double.parse(json['price_per_half_hour'].toString()),
       pricePerHour: double.parse(json['price_per_hour'].toString()),
-      images: jsonDecode(json['images']).cast<String>(),
+      images: (json['images'] as List<dynamic>).cast<String>(),
     );
   }
 }
