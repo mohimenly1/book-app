@@ -46,6 +46,7 @@ dependencies:
   cached_network_image: ^3.2.3
   fluttericon: ^2.0.0
   google_fonts: ^5.1.0
+  qr_flutter: ^4.1.0
   ui_common:
     git: https://github.com/brocodev/ui_common.git
   carousel_slider: ^4.2.1

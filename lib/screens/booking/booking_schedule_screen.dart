@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'qr_code_screen.dart'; // Add this line
 
 class BookingScheduleScreen extends StatefulWidget {
   final int playgroundId;
@@ -78,8 +80,12 @@ class _BookingScheduleScreenState extends State<BookingScheduleScreen> {
     );
 
     if (response.statusCode == 201) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Booking successful')),
+      var reservation = json.decode(response.body);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => QRCodeScreen(reservation: reservation),
+        ),
       );
     } else {
       throw Exception('Failed to book reservation');
