@@ -1,11 +1,9 @@
 import 'package:animated_text_kit/animated_text_kit.dart';
-import 'package:app/screens/login_success/otp_phone_screen.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:app/screens/login_success/login_success_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'dart:async';
-import '../login_success/login_success_screen.dart';
 import '../sign_up/sign_up_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -62,15 +60,8 @@ class _SignInScreenState extends State<SignInScreen> {
         await prefs.setString('access_token', accessToken);
         await prefs.setInt('user_id', userId);
 
-        // Check if OTP verification is already completed
-        bool isOtpVerified = prefs.getBool('is_otp_verified') ?? false;
-        if (!isOtpVerified) {
-          // Proceed to OTP verification
-          _sendOTP();
-        } else {
-          // Navigate to the success screen directly
-          Navigator.pushReplacementNamed(context, LoginSuccessScreen.routeName);
-        }
+        // Navigate to the success screen directly
+        Navigator.pushReplacementNamed(context, LoginSuccessScreen.routeName);
       } else {
         // Parse the response body if it's JSON
         String errorMessage = 'The provided credentials are incorrect.';
@@ -96,40 +87,6 @@ class _SignInScreenState extends State<SignInScreen> {
         _isLoading = false; // Set loading to false when login is finished
       });
     }
-  }
-
-  Future<void> _sendOTP() async {
-    String formattedPhoneNumber = _formatPhoneNumber(phoneNumber!);
-
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: formattedPhoneNumber,
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        // Auto-retrieval or instant verification
-        await FirebaseAuth.instance.signInWithCredential(credential);
-
-        // Set the OTP verification flag
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('is_otp_verified', true);
-
-        Navigator.pushReplacementNamed(context, LoginSuccessScreen.routeName);
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        setState(() {
-          phoneErrorText = 'Failed to verify phone number: ${e.message}';
-        });
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OTPPhoneScreen(
-              verificationId: verificationId,
-            ),
-          ),
-        );
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {},
-    );
   }
 
   void _showErrorDialog(String errorMessage) {

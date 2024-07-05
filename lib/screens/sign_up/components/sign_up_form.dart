@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../login_success/login_success_screen.dart';
-import 'package:app/screens/login_success/otp_phone_screen.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:twilio_flutter/twilio_flutter.dart';
+import '../OTPVerificationScreen.dart';
 
 class SignUpForm extends StatefulWidget {
   const SignUpForm({super.key});
@@ -22,6 +22,17 @@ class _SignUpFormState extends State<SignUpForm> {
   String? confirmPassword;
   String? errorText;
   bool _isLoading = false;
+  late TwilioFlutter twilioFlutter;
+
+  @override
+  void initState() {
+    super.initState();
+    twilioFlutter = TwilioFlutter(
+      accountSid: dotenv.env['TWILIO_ACCOUNT_SID']!,
+      authToken: dotenv.env['TWILIO_AUTH_TOKEN']!,
+      twilioNumber: dotenv.env['TWILIO_PHONE_NUMBER']!,
+    );
+  }
 
   String _formatPhoneNumber(String phoneNumber) {
     if (phoneNumber.startsWith('0')) {
@@ -56,16 +67,8 @@ class _SignUpFormState extends State<SignUpForm> {
             SharedPreferences prefs = await SharedPreferences.getInstance();
             await prefs.setString('access_token', accessToken);
 
-            // Check if OTP verification is already completed
-            bool isOtpVerified = prefs.getBool('is_otp_verified') ?? false;
-            if (!isOtpVerified) {
-              // Proceed to OTP verification
-              _sendOTP();
-            } else {
-              // Navigate to the success screen directly
-              Navigator.pushReplacementNamed(
-                  context, LoginSuccessScreen.routeName);
-            }
+            // Send OTP
+            await _sendOTP();
           } else {
             setState(() {
               errorText =
@@ -92,34 +95,25 @@ class _SignUpFormState extends State<SignUpForm> {
   Future<void> _sendOTP() async {
     String formattedPhoneNumber = _formatPhoneNumber(phoneNumber!);
 
-    await FirebaseAuth.instance.verifyPhoneNumber(
-      phoneNumber: formattedPhoneNumber,
-      verificationCompleted: (PhoneAuthCredential credential) async {
-        await FirebaseAuth.instance.signInWithCredential(credential);
+    try {
+      await twilioFlutter.sendSMS(
+        toNumber: formattedPhoneNumber,
+        messageBody:
+            'Your verification code is 123456', // Here you should generate and send a real OTP
+      );
 
-        // Set the OTP verification flag
-        SharedPreferences prefs = await SharedPreferences.getInstance();
-        await prefs.setBool('is_otp_verified', true);
-
-        Navigator.pushReplacementNamed(context, LoginSuccessScreen.routeName);
-      },
-      verificationFailed: (FirebaseAuthException e) {
-        setState(() {
-          errorText = 'Failed to verify phone number: ${e.message}';
-        });
-      },
-      codeSent: (String verificationId, int? resendToken) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OTPPhoneScreen(
-              verificationId: verificationId,
-            ),
-          ),
-        );
-      },
-      codeAutoRetrievalTimeout: (String verificationId) {},
-    );
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) =>
+              OTPVerificationScreen(phoneNumber: formattedPhoneNumber),
+        ),
+      );
+    } catch (e) {
+      setState(() {
+        errorText = 'An error occurred while sending SMS: $e';
+      });
+    }
   }
 
   @override
